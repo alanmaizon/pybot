@@ -36,6 +36,8 @@
         <span aria-hidden="true">·</span>
         <button id="memory-button" class="link-button" type="button" disabled>Manage memory</button>
         <span aria-hidden="true">·</span>
+        <button id="diagnostics-button" class="link-button" type="button" disabled>Diagnostics</button>
+        <span aria-hidden="true">·</span>
         <button id="reset-button" class="link-button" type="button" disabled>Reset conversation</button>
       </footer>
 
@@ -50,9 +52,23 @@
         <div id="memory-list" class="memory-list"></div>
         <p id="memory-empty" class="empty-memory">No structured facts have been saved yet.</p>
       </section>
+
+      <section id="diagnostics-panel" class="memory-panel diagnostics-panel" hidden
+               aria-labelledby="diagnostics-title">
+        <div class="memory-header">
+          <div>
+            <h2 id="diagnostics-title">Developer diagnostics</h2>
+            <p>Local runtime metrics only; message contents are not recorded.</p>
+          </div>
+          <button id="refresh-diagnostics-button" class="danger-button" type="button">Refresh</button>
+        </div>
+        <pre id="diagnostics-output" class="diagnostics-output"></pre>
+      </section>
     </main>
 
     <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+    <script src="persistence.js"></script>
+    <script src="diagnostics.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

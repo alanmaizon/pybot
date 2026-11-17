@@ -41,6 +41,8 @@ def TAKES_AS_IT_COMES(text, memory):
 def _say(record):
     key = record["key"]
     value = record["value"]
+    if record.get("provenance") == "inferred":
+        return "I may have inferred that your " + key + " is " + value + "; please confirm."
     if key == "name":
         return "Your name is " + value + "."
     if key == "location":

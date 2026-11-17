@@ -106,12 +106,23 @@ In addition to the complete `memory["turns"]` conversation history, PyBot keeps 
 `memory["structured_memory"]` index for explicit first-person facts. It groups memories into
 personal facts, preferences, interests, important dates, and ongoing topics. New values replace
 older values for the same fact key, while unrelated facts remain separate; questions and
-inferences are not stored.
+inferences are not stored automatically. Each record also keeps an importance score, confidence,
+provenance (`explicit` or `inferred`), timestamps, expiry, source text, and a bounded replacement
+history. Retrieval filters expired records and ranks lexical relevance with importance and
+confidence rather than using recency alone.
 
 Use **Manage memory** in the browser to view, edit, or delete individual remembered facts, or
 clear the structured memory. **Reset conversation** clears the active conversation and all
 remembered data. Edits are applied to the live Pyodide memory and are included in subsequent
 contextual retrievals.
+
+### Developer diagnostics
+
+The optional **Diagnostics** panel is disabled during normal use and records only local runtime
+metadata: Pyodide status, loaded module names, turn/context size, memory count, retrieved-memory
+IDs and metadata, timing, storage status, initialization/runtime network requests, and JavaScript
+or Python error messages with stack traces. It does not record message text or send diagnostics
+to a server.
 
 ## What is in this repository
 

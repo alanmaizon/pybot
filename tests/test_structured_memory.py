@@ -38,6 +38,33 @@ class StructuredMemory(unittest.TestCase):
         records = structured.find(memory, "favourite language")
         self.assertEqual(len(records), 1)
         self.assertEqual(records[0]["value"], "French")
+        self.assertEqual(records[0]["provenance"], "explicit")
+        self.assertGreaterEqual(records[0]["importance"], 0.9)
+        self.assertEqual(len(records[0]["history"]), 1)
+
+    def test_inferred_memories_are_labelled_and_not_presented_as_facts(self):
+        memory = {}
+        structured.remember_inferred(memory, "interests", "interest", "astronomy",
+                                     source="The topic seemed relevant", confidence=0.4)
+        record = structured.all_records(memory)[0]
+        self.assertEqual(record["provenance"], "inferred")
+        self.assertEqual(record["confidence"], 0.4)
+        self.assertIn("may have inferred", runtime.turn("What am I interested in?", memory)["reply"])
+
+    def test_expired_memory_is_not_retrieved(self):
+        memory = {}
+        structured.observe(memory, "My birthday is 4 May.", 0)
+        record = structured.all_records(memory)[0]
+        self.assertTrue(structured.expire(memory, record["id"], "2000-01-01T00:00:00+00:00"))
+        self.assertEqual(structured.find(memory, "When is my birthday?"), [])
+
+    def test_equivalent_duplicate_is_consolidated(self):
+        memory = {}
+        structured.observe(memory, "My name is Alan.", 0)
+        structured.observe(memory, "My name is alan.", 1)
+        records = structured.all_records(memory)
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["history"], [])
 
     def test_edit_and_delete_are_user_controlled(self):
         memory = {}
