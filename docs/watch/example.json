@@ -1,0 +1,17 @@
+{
+  "prompt": "How do I set the alarm on my F-91W watch?",
+  "reply": "Put the alarm across the room so you have to stand up, and set it for the last minute you can actually get up: snoozing for nine minutes at a time just restarts the groggy part. Going to bed 30 minutes earlier fixes the reason you want to snooze better than any alarm app.",
+  "module": "answers",
+  "candidates": [
+    {
+      "module": "answers",
+      "priority": 0,
+      "reply": "Put the alarm across the room so you have to stand up, and set it for the last minute you can actually get up: snoozing for nine minutes at a time just restarts the groggy part. Going to bed 30 minutes earlier fixes the reason you want to snooze better than any alarm app."
+    },
+    {
+      "module": "greeting",
+      "priority": -1000,
+      "reply": "I don't know enough to answer that honestly. A search should sort you out quickly \u2014 and I'm happy to help with the rest of it."
+    }
+  ]
+}
