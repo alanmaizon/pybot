@@ -124,6 +124,20 @@ IDs and metadata, timing, storage status, initialization/runtime network request
 or Python error messages with stack traces. It does not record message text or send diagnostics
 to a server.
 
+### Local tools
+
+PyBot includes a small local tool registry. It reuses the existing safe maths, unit-conversion,
+conversation-history, and structured-memory helpers rather than adding a backend or an external
+AI service. Supported tools are calculator, date/time, unit conversion, conversation search,
+structured-memory search, and restricted Python execution.
+
+Tool selection is conservative and only routes messages with a clear intent. Replies identify the
+tool used and store its result in the local conversation state. Python is never run automatically:
+enter `/python <code>` and then type `/approve`. The Python tool has no imports, file access,
+network access, or browser access, and applies a character, step, and short execution-time limit.
+These limits are a safety boundary, not a guarantee against all denial-of-service behaviour; the
+browser remains responsible for running the Pyodide thread.
+
 ## What is in this repository
 
 | Path | What it holds |
