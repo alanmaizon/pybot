@@ -106,12 +106,53 @@ In addition to the complete `memory["turns"]` conversation history, PyBot keeps 
 `memory["structured_memory"]` index for explicit first-person facts. It groups memories into
 personal facts, preferences, interests, important dates, and ongoing topics. New values replace
 older values for the same fact key, while unrelated facts remain separate; questions and
-inferences are not stored.
+inferences are not stored automatically. Each record also keeps an importance score, confidence,
+provenance (`explicit` or `inferred`), timestamps, expiry, source text, and a bounded replacement
+history. Retrieval filters expired records and ranks lexical relevance with importance and
+confidence rather than using recency alone.
 
 Use **Manage memory** in the browser to view, edit, or delete individual remembered facts, or
 clear the structured memory. **Reset conversation** clears the active conversation and all
 remembered data. Edits are applied to the live Pyodide memory and are included in subsequent
 contextual retrievals.
+
+### Developer diagnostics
+
+The optional **Diagnostics** panel is disabled during normal use and records only local runtime
+metadata: Pyodide status, loaded module names, turn/context size, memory count, retrieved-memory
+IDs and metadata, timing, storage status, initialization/runtime network requests, and JavaScript
+or Python error messages with stack traces. It does not record message text or send diagnostics
+to a server.
+
+### Local tools
+
+PyBot includes a small local tool registry. It reuses the existing safe maths, unit-conversion,
+conversation-history, and structured-memory helpers rather than adding a backend or an external
+AI service. Supported tools are calculator, date/time, unit conversion, conversation search,
+structured-memory search, and restricted Python execution.
+
+Tool selection is conservative and only routes messages with a clear intent. Replies identify the
+tool used and store its result in the local conversation state. Python is never run automatically:
+enter `/python <code>` and then type `/approve`. The Python tool has no imports, file access,
+network access, or browser access, and applies a character, step, and short execution-time limit.
+These limits are a safety boundary, not a guarantee against all denial-of-service behaviour; the
+browser remains responsible for running the Pyodide thread.
+
+### Local document intelligence
+
+The browser demo can ingest UTF-8 TXT, Markdown, CSV, and JSON files locally. Files are validated
+against a 1 MB limit, converted to searchable text, chunked, and indexed in the active Pyodide
+session. Select an uploaded document in **Documents** before asking questions; document tools
+never search an unselected file. Answers expose source filenames, chunk sections, and line ranges,
+and label returned passages as document evidence rather than presenting them as PyBot's own facts.
+
+Uploads are session-only by default. Checking **Remember locally after refresh** opts a document
+into the separate local-storage document store; only consented documents are serialized. The
+Documents panel can delete each file, and browser storage corruption is discarded safely. No
+document contents are sent to GitHub, Pyodide's CDN, or any other service after the source files
+have loaded. PDF extraction is intentionally not included yet because it would require an
+additional browser parser and larger dependency; the current implementation accepts only the four
+plain-text formats above.
 
 ## What is in this repository
 

@@ -5,6 +5,7 @@ store is a small searchable index for the browser memory panel and for broad rec
 Only explicit first-person statements are stored; questions and guesses are ignored.
 """
 import re
+from datetime import datetime, timezone
 
 
 CATEGORIES = ("personal_facts", "preferences", "interests", "important_dates",
@@ -50,11 +51,27 @@ def _key(value):
     return re.sub(r"\s+", " ", str(value or "").strip().lower())
 
 
-def _record(category, key, value, text, turn):
+def _now():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _importance(category, key):
+    if category == "personal_facts" and key in ("name", "location"):
+        return 1.0
+    if category in ("preferences", "important_dates"):
+        return 0.9
+    if category == "interests":
+        return 0.7
+    return 0.5
+
+
+def _record(category, key, value, text, turn, *, provenance="explicit",
+           confidence=1.0, now=None):
     value = _clean(value)
     key = _key(key)
     if not value or not key or "?" in value:
         return None
+    timestamp = now or _now()
     return {
         "id": category + ":" + key,
         "category": category,
@@ -62,6 +79,13 @@ def _record(category, key, value, text, turn):
         "value": value,
         "source": str(text or "").strip(),
         "turn": int(turn),
+        "importance": _importance(category, key),
+        "confidence": float(confidence),
+        "provenance": provenance if provenance in ("explicit", "inferred") else "explicit",
+        "valid_from": timestamp,
+        "updated_at": timestamp,
+        "expires_at": None,
+        "history": [],
     }
 
 
@@ -109,7 +133,7 @@ def _bucket(memory, category):
 
 
 def remember(memory, records):
-    """Upsert records by category/key, preserving the newest explicit value."""
+    """Upsert records, preserving replaced values in a compact history."""
     if not isinstance(memory, dict):
         return
     for record in records or []:
@@ -118,16 +142,64 @@ def remember(memory, records):
         category = record["category"]
         values = _bucket(memory, category)
         current = next((item for item in values if item.get("id") == record.get("id")), None)
+        incoming = dict(record)
+        incoming.setdefault("importance", _importance(category, record.get("key", "")))
+        incoming.setdefault("confidence", 1.0)
+        incoming.setdefault("provenance", "explicit")
+        incoming.setdefault("updated_at", _now())
+        incoming.setdefault("valid_from", incoming["updated_at"])
+        incoming.setdefault("expires_at", None)
+        incoming.setdefault("history", [])
         if current is None:
-            values.append(dict(record))
-        else:
-            current.update(record)
+            values.append(incoming)
+            continue
+        if _key(current.get("value")) == _key(incoming.get("value")):
+            current["updated_at"] = incoming["updated_at"]
+            current["confidence"] = max(float(current.get("confidence", 0)),
+                                       float(incoming.get("confidence", 0)))
+            continue
+        history = current.setdefault("history", [])
+        history.append({
+            "value": current.get("value"),
+            "source": current.get("source", ""),
+            "confidence": current.get("confidence", 1.0),
+            "provenance": current.get("provenance", "explicit"),
+            "valid_from": current.get("valid_from"),
+            "valid_until": incoming.get("updated_at"),
+        })
+        incoming["history"] = history[-10:]
+        current.clear()
+        current.update(incoming)
 
 
-def observe(memory, text, turn=0):
+def observe(memory, text, turn=0, *, now=None):
     records = extract(text, turn)
+    if now:
+        for record in records:
+            record["valid_from"] = record["updated_at"] = now
     remember(memory, records)
     return records
+
+
+def remember_inferred(memory, category, key, value, *, source="", turn=0,
+                      confidence=0.4, now=None):
+    """Store a clearly labelled inference for internal use, never as a confirmed fact."""
+    record = _record(category, key, value, source, turn, provenance="inferred",
+                     confidence=confidence, now=now)
+    if not record:
+        return None
+    remember(memory, [record])
+    return record
+
+
+def expire(memory, record_id, expires_at):
+    """Set or clear a record's expiry without changing its value."""
+    for category in CATEGORIES:
+        for record in _bucket(memory, category):
+            if record.get("id") == record_id:
+                record["expires_at"] = expires_at
+                return True
+    return False
 
 
 def all_records(memory):
@@ -141,7 +213,7 @@ def all_records(memory):
 
 
 def find(memory, query):
-    """Find explicit memories whose category, key, or value matches query words."""
+    """Find valid memories by lexical relevance, importance, confidence, and recency."""
     lowered = str(query or "").lower()
     words = set(re.findall(r"[a-z0-9]+", lowered))
     if "interest" in lowered:
@@ -156,8 +228,15 @@ def find(memory, query):
         words.add("personal_facts")
     if not words:
         return []
+    now = datetime.now(timezone.utc)
     scored = []
     for record in all_records(memory):
+        if record.get("expires_at"):
+            try:
+                if datetime.fromisoformat(record["expires_at"]) <= now:
+                    continue
+            except (TypeError, ValueError):
+                pass
         haystack = set(re.findall(r"[a-z0-9]+",
                                   " ".join((record.get("category", ""),
                                             record.get("key", ""),
@@ -165,7 +244,10 @@ def find(memory, query):
                                   .replace("_", " ")))
         score = sum(word in haystack for word in words)
         if score:
-            scored.append((score, int(record.get("turn", 0)), record))
+            weighted = (score * 10
+                        + float(record.get("importance", 0.5)) * 3
+                        + float(record.get("confidence", 0.0)) * 2)
+            scored.append((weighted, int(record.get("turn", 0)), record))
     scored.sort(key=lambda item: (-item[0], -item[1]))
     return [record for _, _, record in scored]
 
@@ -182,6 +264,9 @@ def update(memory, record_id, value):
                 if current.get("id") == record_id:
                     current["value"] = value
                     current["source"] = "Edited in memory"
+                    current["confidence"] = 1.0
+                    current["provenance"] = "explicit"
+                    current["updated_at"] = _now()
                     return True
     return False
 
