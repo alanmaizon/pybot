@@ -50,12 +50,19 @@ class ToolRegistryTests(unittest.TestCase):
         failed = self.registry.execute("python", {"code": "1 / 0"}, approved=True)
         self.assertFalse(failed["ok"])
 
-    def test_python_timeout_is_bounded(self):
+    def test_python_rejects_introspection_and_attribute_escape(self):
+        payload = ("result = [c for c in ().__class__.__base__.__subclasses__() "
+                   "if c.__name__ == 'BuiltinImporter']")
+        result = self.registry.execute("python", {"code": payload}, approved=True)
+        self.assertFalse(result["ok"])
+        self.assertIn("not allowed", result["error"])
+
+    def test_python_loops_are_rejected_before_execution(self):
         result = self.registry.execute(
             "python", {"code": "while True: pass", "timeout_seconds": 0.1},
             approved=True)
         self.assertFalse(result["ok"])
-        self.assertIn("time limit", result["error"])
+        self.assertIn("expressions, assignments", result["error"])
 
     def test_selector_is_conservative(self):
         self.assertEqual(select("What is 15 multiplied by 8?")["tool"], "calculator")
