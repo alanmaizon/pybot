@@ -100,6 +100,19 @@ between devices, is removed when site data is cleared, and is never sent to a se
 If browser storage is unavailable or contains invalid data, PyBot starts with a new in-session
 conversation instead.
 
+### Structured memory
+
+In addition to the complete `memory["turns"]` conversation history, PyBot keeps a compact
+`memory["structured_memory"]` index for explicit first-person facts. It groups memories into
+personal facts, preferences, interests, important dates, and ongoing topics. New values replace
+older values for the same fact key, while unrelated facts remain separate; questions and
+inferences are not stored.
+
+Use **Manage memory** in the browser to view, edit, or delete individual remembered facts, or
+clear the structured memory. **Reset conversation** clears the active conversation and all
+remembered data. Edits are applied to the live Pyodide memory and are included in subsequent
+contextual retrievals.
+
 ## What is in this repository
 
 | Path | What it holds |
