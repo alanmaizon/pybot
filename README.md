@@ -72,6 +72,27 @@ echo "how long should i boil an egg" | python -m pybot
 
 For a `pybot` command you can run from anywhere, install the clone with `pip install .`.
 
+## Browser demo on GitHub Pages
+
+This repository includes a static browser demo in [`docs/`](docs/). It uses
+[Pyodide](https://pyodide.org/) to run the repository's real `bot/` Python package in the
+browser: the page discovers this repository's `main` tree, downloads its Python files locally,
+and calls `bot.runtime.turn`. No application backend is involved, and conversation data stays in
+the page.
+
+The included [Pages workflow](.github/workflows/pages.yml) deploys the site automatically:
+
+1. Push the repository to GitHub (the workflow is already configured for the `main` branch).
+2. In **Settings → Pages**, set **Source** to **GitHub Actions**.
+3. Push a commit or run **Deploy PyBot to GitHub Pages** from the **Actions** tab.
+4. Open the URL shown in the workflow deployment, usually
+   `https://<your-user>.github.io/<repository>/`.
+
+If you rename the repository, change `PYBOT_REPOSITORY` in
+[`docs/app.js`](docs/app.js) so the browser loads the correct fork and branch. The first visit
+downloads Pyodide and PyBot's Python files, so startup can take a few seconds; later browser
+caching makes it faster.
+
 ## What is in this repository
 
 | Path | What it holds |
