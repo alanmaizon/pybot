@@ -34,8 +34,22 @@
       <footer>
         <a href="https://github.com/alanmaizon/pybot">View the source on GitHub</a>
         <span aria-hidden="true">·</span>
+        <button id="memory-button" class="link-button" type="button" disabled>Manage memory</button>
+        <span aria-hidden="true">·</span>
         <button id="reset-button" class="link-button" type="button" disabled>Reset conversation</button>
       </footer>
+
+      <section id="memory-panel" class="memory-panel" hidden aria-labelledby="memory-title">
+        <div class="memory-header">
+          <div>
+            <h2 id="memory-title">Remembered facts</h2>
+            <p>Stored only in this browser. Edit or delete anything PyBot remembers.</p>
+          </div>
+          <button id="clear-memory-button" class="danger-button" type="button">Clear all</button>
+        </div>
+        <div id="memory-list" class="memory-list"></div>
+        <p id="memory-empty" class="empty-memory">No structured facts have been saved yet.</p>
+      </section>
     </main>
 
     <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>

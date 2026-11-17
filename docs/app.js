@@ -12,6 +12,11 @@ const form = document.querySelector("#chat-form");
 const input = document.querySelector("#message-input");
 const sendButton = document.querySelector("#send-button");
 const resetButton = document.querySelector("#reset-button");
+const memoryButton = document.querySelector("#memory-button");
+const memoryPanel = document.querySelector("#memory-panel");
+const memoryList = document.querySelector("#memory-list");
+const memoryEmpty = document.querySelector("#memory-empty");
+const clearMemoryButton = document.querySelector("#clear-memory-button");
 const chatLog = document.querySelector("#chat-log");
 const status = document.querySelector("#status");
 
@@ -58,6 +63,7 @@ import json
 sys.path.insert(0, "/tmp/pybot-source")
 
 from bot import runtime
+from bot.memory import structured
 _pybot_memory = {}
 
 def _pybot_answer(text):
@@ -75,6 +81,18 @@ def _pybot_restore_memory(serialized):
 
 def _pybot_turns():
     return json.dumps(_pybot_memory.get("turns", []), separators=(",", ":"))
+
+def _pybot_structured_memory():
+    return json.dumps(structured.all_records(_pybot_memory), separators=(",", ":"))
+
+def _pybot_update_memory(record_id, value):
+    return structured.update(_pybot_memory, record_id, value)
+
+def _pybot_delete_memory(record_id):
+    return structured.delete(_pybot_memory, record_id)
+
+def _pybot_clear_structured_memory():
+    structured.clear(_pybot_memory)
 `);
   conversation = (text) => pyodide.runPython(
     "_pybot_answer(" + JSON.stringify(text) + ")"
@@ -128,6 +146,52 @@ function renderStoredConversation() {
   return turns.length > 0;
 }
 
+function getMemories() {
+  return JSON.parse(pyodide.runPython("_pybot_structured_memory()"));
+}
+
+function renderMemories() {
+  const memories = getMemories();
+  memoryList.replaceChildren();
+  memoryEmpty.hidden = memories.length > 0;
+  for (const memory of memories) {
+    const item = document.createElement("div");
+    item.className = "memory-item";
+    const field = document.createElement("label");
+    const category = document.createElement("small");
+    category.textContent = memory.category.replaceAll("_", " ");
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = memory.value;
+    input.setAttribute("aria-label", memory.key);
+    field.append(category, input);
+    const actions = document.createElement("div");
+    actions.className = "memory-actions";
+    const save = document.createElement("button");
+    save.type = "button";
+    save.textContent = "Save";
+    save.addEventListener("click", () => {
+      if (!input.value.trim()) return;
+      pyodide.runPython("_pybot_update_memory(" +
+        JSON.stringify(memory.id) + ", " + JSON.stringify(input.value.trim()) + ")");
+      saveMemory();
+      renderMemories();
+    });
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "delete-memory";
+    remove.textContent = "Delete";
+    remove.addEventListener("click", () => {
+      pyodide.runPython("_pybot_delete_memory(" + JSON.stringify(memory.id) + ")");
+      saveMemory();
+      renderMemories();
+    });
+    actions.append(save, remove);
+    item.append(field, actions);
+    memoryList.append(item);
+  }
+}
+
 async function start() {
   try {
     await loadBot();
@@ -135,6 +199,7 @@ async function start() {
     input.disabled = false;
     sendButton.disabled = false;
     resetButton.disabled = false;
+    memoryButton.disabled = false;
     status.textContent = "Ready. PyBot runs locally in your browser.";
     input.focus();
     if (!restored || !renderStoredConversation()) {
@@ -159,6 +224,7 @@ form.addEventListener("submit", (event) => {
   try {
     addMessage("PyBot", conversation(text));
     saveMemory();
+    if (!memoryPanel.hidden) renderMemories();
   } catch (error) {
     console.error(error);
     addMessage("PyBot", "I couldn't answer that. Please try again.");
@@ -177,8 +243,21 @@ resetButton.addEventListener("click", () => {
     console.warn("PyBot local memory could not be cleared.", error);
   }
   chatLog.replaceChildren();
+  renderMemories();
   addMessage("PyBot", "New conversation. What can I help with?");
   input.focus();
+});
+
+memoryButton.addEventListener("click", () => {
+  memoryPanel.hidden = !memoryPanel.hidden;
+  if (!memoryPanel.hidden) renderMemories();
+});
+
+clearMemoryButton.addEventListener("click", () => {
+  if (!pyodide || !window.confirm("Clear all remembered facts?")) return;
+  pyodide.runPython("_pybot_clear_structured_memory()");
+  saveMemory();
+  renderMemories();
 });
 
 start();

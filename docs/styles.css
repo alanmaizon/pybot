@@ -111,6 +111,26 @@ footer { display: flex; gap: .6rem; margin-top: 1rem; color: var(--muted); font-
 a, .link-button { color: var(--accent-dark); }
 .link-button { background: transparent; padding: 0; font-size: inherit; font-weight: 400; }
 .link-button:hover { background: transparent; text-decoration: underline; }
+.memory-panel {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 1rem;
+}
+.memory-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.memory-header h2 { margin: 0; font: 700 1.35rem Georgia, serif; }
+.memory-header p { margin: .25rem 0 0; color: var(--muted); font-size: .82rem; }
+.danger-button { background: transparent; border: 1px solid var(--accent); color: var(--accent-dark); padding: .45rem .65rem; }
+.danger-button:hover { background: rgb(189 77 53 / 10%); }
+.memory-list { display: grid; gap: .65rem; margin-top: 1rem; }
+.memory-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; align-items: center; }
+.memory-item small { display: block; color: var(--muted); font-size: .72rem; text-transform: uppercase; }
+.memory-item input { width: 100%; }
+.memory-actions { display: flex; gap: .35rem; }
+.memory-actions button { padding: .5rem .65rem; font-size: .85rem; }
+.memory-actions .delete-memory { background: transparent; border: 1px solid var(--line); color: var(--accent-dark); }
+.empty-memory { margin: 1rem 0 .25rem; color: var(--muted); font-size: .9rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
 
 @media (max-width: 500px) {
