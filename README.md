@@ -133,10 +133,13 @@ structured-memory search, and restricted Python execution.
 
 Tool selection is conservative and only routes messages with a clear intent. Replies identify the
 tool used and store its result in the local conversation state. Python is never run automatically:
-enter `/python <code>` and then type `/approve`. The Python tool has no imports, file access,
-network access, or browser access, and applies a character, step, and short execution-time limit.
-These limits are a safety boundary, not a guarantee against all denial-of-service behaviour; the
-browser remains responsible for running the Pyodide thread.
+enter `/python <code>` and then type `/approve`. The Python tool uses an explicit AST interpreter:
+it does not call Python `exec` or `eval`, and supports only simple values, arithmetic, selected
+math functions, assignments, and `print`. Imports, attribute access, comprehensions, loops,
+introspection, file access, network access, and browser access are rejected. It also applies
+character, statement, node, and short execution-time limits. This is safer than restricted
+builtins, but it is still not a secure sandbox or a guarantee against every denial-of-service
+condition; the browser remains responsible for running the Pyodide thread.
 
 ### Local document intelligence
 
@@ -153,6 +156,13 @@ document contents are sent to GitHub, Pyodide's CDN, or any other service after 
 have loaded. PDF extraction is intentionally not included yet because it would require an
 additional browser parser and larger dependency; the current implementation accepts only the four
 plain-text formats above.
+
+### Security boundary
+
+See [`SECURITY.md`](SECURITY.md) for reporting guidance and the deployment assumptions. In
+particular, the local Python feature is an allowlisted AST interpreter, not a secure sandbox:
+unsupported syntax and introspection are rejected, but browser/Pyodide execution is not an
+OS-level isolation boundary.
 
 ## What is in this repository
 
