@@ -78,7 +78,9 @@ This repository includes a static browser demo in [`docs/`](docs/). It uses
 [Pyodide](https://pyodide.org/) to run the repository's real `bot/` Python package in the
 browser: the page discovers this repository's `main` tree, downloads its Python files locally,
 and calls `bot.runtime.turn`. No application backend is involved, and conversation data stays in
-the page.
+the browser. The active Python memory is kept in the Pyodide session, and the page also saves a
+bounded JSON copy in browser `localStorage` so the conversation can be restored after a refresh.
+The **Reset conversation** control clears both forms of memory.
 
 The included [Pages workflow](.github/workflows/pages.yml) deploys the site automatically:
 
@@ -92,6 +94,11 @@ If you rename the repository, change `PYBOT_REPOSITORY` in
 [`docs/app.js`](docs/app.js) so the browser loads the correct fork and branch. The first visit
 downloads Pyodide and PyBot's Python files, so startup can take a few seconds; later browser
 caching makes it faster.
+
+Local persistence is limited to the current browser and GitHub Pages origin: it is not synced
+between devices, is removed when site data is cleared, and is never sent to a server by this app.
+If browser storage is unavailable or contains invalid data, PyBot starts with a new in-session
+conversation instead.
 
 ## What is in this repository
 

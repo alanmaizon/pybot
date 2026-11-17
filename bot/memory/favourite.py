@@ -262,7 +262,8 @@ def _clauses(text):
 
 def read(line):
     """The favourite a line states: {"thing": "colour", "value": "green"}, or None."""
-    text = " ".join(str(line or "").split())
+    text = " ".join(str(line or "").split()).strip()
+    text = text.rstrip(".!")
     if not text or "?" in text:
         return None
     if asked(text):
