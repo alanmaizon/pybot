@@ -18,7 +18,9 @@ class ToolRegistryTests(unittest.TestCase):
         self.assertEqual(
             {tool.id for tool in self.registry.list()},
             {"calculator", "date_time", "unit_conversion",
-             "conversation_search", "structured_memory_search", "python"},
+             "conversation_search", "structured_memory_search", "python",
+             "list_documents", "search_documents", "read_document",
+             "remove_document"},
         )
 
     def test_calculator_reuses_safe_math_logic(self):

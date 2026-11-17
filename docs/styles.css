@@ -131,6 +131,10 @@ a, .link-button { color: var(--accent-dark); }
 .memory-actions button { padding: .5rem .65rem; font-size: .85rem; }
 .memory-actions .delete-memory { background: transparent; border: 1px solid var(--line); color: var(--accent-dark); }
 .empty-memory { margin: 1rem 0 .25rem; color: var(--muted); font-size: .9rem; }
+.document-upload { display: grid; gap: .6rem; margin-top: 1rem; }
+.document-upload label { color: var(--muted); font-size: .85rem; }
+.document-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; align-items: center; }
+.document-item small { display: block; color: var(--muted); font-size: .75rem; }
 .diagnostics-output {
   max-height: 28rem;
   overflow: auto;
