@@ -11,9 +11,12 @@ _HISTORY = re.compile(r"\b(?:search|find|look up)\b.*\b(?:conversation|chat|said
 _MEMORY = re.compile(r"\b(?:what is my|what are my|do you remember|what do you remember|"
                      r"what have i told you)\b", re.I)
 _PYTHON = re.compile(r"^\s*(?:/python|run python|execute python)\b\s*:?\s*", re.I)
+_DOCUMENT = re.compile(
+    r"\b(?:document|file|passage|source|summari[sz]e|summary|risks?|deadline|"
+    r"mention(?:s|ed)?|according to)\b", re.I)
 
 
-def select(text):
+def select(text, *, document_selected=False):
     line = " ".join(str(text or "").split())
     if not line:
         return None
@@ -25,6 +28,10 @@ def select(text):
         return {"tool": "python", "arguments": {"code": code}} if code else {
             "clarification": "What Python code should I run?"
         }
+    if document_selected and _DOCUMENT.search(line):
+        if re.search(r"\b(?:summari[sz]e|summary|read|contents?)\b", line):
+            return {"tool": "read_document", "arguments": {}}
+        return {"tool": "search_documents", "arguments": {"query": line}}
     if _MATH.search(line):
         return {"tool": "calculator", "arguments": {"expression": line}}
     if _UNITS.search(line):

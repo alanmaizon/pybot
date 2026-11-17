@@ -4,10 +4,17 @@ from ..tools.selector import select
 
 PRIORITY = 8200
 REGISTRY = default_registry()
+DOCUMENTS = {}
+
+
+def set_documents(state):
+    """Replace browser-owned document state without putting it in chat memory."""
+    global DOCUMENTS
+    DOCUMENTS = state if isinstance(state, dict) else {}
 
 
 def respond(text, memory):
-    choice = select(text)
+    choice = select(text, document_selected=bool(DOCUMENTS.get("selected_document_id")))
     if not choice:
         return None
     if choice.get("approve"):
@@ -15,7 +22,7 @@ def respond(text, memory):
         if not pending:
             return "There is no pending tool request to approve."
         result = REGISTRY.execute(pending["tool"], pending["arguments"],
-                                  {"memory": memory}, approved=True)
+                                  {"memory": memory, "documents": DOCUMENTS}, approved=True)
         memory["last_tool"] = {
             "id": pending["tool"], "arguments": pending["arguments"], "result": result,
         }
@@ -31,7 +38,7 @@ def respond(text, memory):
         }
         return "Python execution requires explicit approval. Type /approve to run it locally."
     result = REGISTRY.execute(choice["tool"], choice["arguments"],
-                              {"memory": memory}, approved=False)
+                              {"memory": memory, "documents": DOCUMENTS}, approved=False)
     memory["last_tool"] = {
         "id": choice["tool"],
         "arguments": choice["arguments"],
@@ -40,6 +47,14 @@ def respond(text, memory):
     if not result["ok"]:
         return "Tool " + choice["tool"] + " was not run: " + result["error"]
     output = result["result"]["output"]
+    if result["result"].get("format") == "passages":
+        if not output:
+            return "I found no matching passage in the selected document."
+        return "Document evidence (not an interpretation): " + " ".join(
+            f"{item['source']['file']} [{item['source']['section']}, "
+            f"lines {item['source']['lines']}]: {item['text']}"
+            for item in output
+        )
     if isinstance(output, dict):
         output = str(output)
     return "Using " + choice["tool"] + ": " + str(output)

@@ -81,6 +81,8 @@ class ToolRegistry:
 
 def default_registry():
     from .builtins import register_builtins
+    from .documents import register_document_tools
     registry = ToolRegistry()
     register_builtins(registry)
+    register_document_tools(registry)
     return registry

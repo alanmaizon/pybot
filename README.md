@@ -138,6 +138,22 @@ network access, or browser access, and applies a character, step, and short exec
 These limits are a safety boundary, not a guarantee against all denial-of-service behaviour; the
 browser remains responsible for running the Pyodide thread.
 
+### Local document intelligence
+
+The browser demo can ingest UTF-8 TXT, Markdown, CSV, and JSON files locally. Files are validated
+against a 1 MB limit, converted to searchable text, chunked, and indexed in the active Pyodide
+session. Select an uploaded document in **Documents** before asking questions; document tools
+never search an unselected file. Answers expose source filenames, chunk sections, and line ranges,
+and label returned passages as document evidence rather than presenting them as PyBot's own facts.
+
+Uploads are session-only by default. Checking **Remember locally after refresh** opts a document
+into the separate local-storage document store; only consented documents are serialized. The
+Documents panel can delete each file, and browser storage corruption is discarded safely. No
+document contents are sent to GitHub, Pyodide's CDN, or any other service after the source files
+have loaded. PDF extraction is intentionally not included yet because it would require an
+additional browser parser and larger dependency; the current implementation accepts only the four
+plain-text formats above.
+
 ## What is in this repository
 
 | Path | What it holds |
