@@ -4,8 +4,8 @@
   --card: #fffdf9;
   --ink: #20231f;
   --muted: #6b7069;
-  --accent: #bd4d35;
-  --accent-dark: #963b28;
+  --accent: #214cad;
+  --accent-dark: #173d8e;
   --line: #ded8ce;
   --bot: #eee9df;
 }
@@ -35,7 +35,7 @@ body {
   letter-spacing: .12em;
   text-transform: uppercase;
 }
-h1 { margin: 0; font: 700 clamp(3rem, 11vw, 5.5rem)/.95 Georgia, serif; }
+h1 { margin: 0; font: 400 clamp(3rem, 11vw, 5.5rem)/1.15 Michroma, sans-serif; }
 .intro { margin: .75rem 0 0; color: var(--muted); font-size: 1.1rem; }
 
 .chat-card {
@@ -107,7 +107,7 @@ button {
 button:hover { background: var(--accent-dark); }
 button:disabled, input:disabled { cursor: not-allowed; opacity: .55; }
 .status { margin: 0; padding: 0 1rem 1rem; color: var(--muted); font-size: .82rem; }
-footer { display: flex; gap: .6rem; margin-top: 1rem; color: var(--muted); font-size: .85rem; }
+footer { display: flex; flex-wrap:wrap; gap: .6rem; margin-top: 1rem; color: var(--muted); font-size: .85rem; }
 a, .link-button { color: var(--accent-dark); }
 .link-button { background: transparent; padding: 0; font-size: inherit; font-weight: 400; }
 .link-button:hover { background: transparent; text-decoration: underline; }
@@ -119,7 +119,7 @@ a, .link-button { color: var(--accent-dark); }
   padding: 1rem;
 }
 .memory-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-.memory-header h2 { margin: 0; font: 700 1.35rem Georgia, serif; }
+.memory-header h2 { margin: 0; font: 400 1.22rem Michroma, sans-serif; }
 .memory-header p { margin: .25rem 0 0; color: var(--muted); font-size: .82rem; }
 .danger-button { background: transparent; border: 1px solid var(--accent); color: var(--accent-dark); padding: .45rem .65rem; }
 .danger-button:hover { background: rgb(189 77 53 / 10%); }

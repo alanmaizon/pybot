@@ -1,18 +1,5 @@
-function show(result, target) {
-  target.replaceChildren();
-  for (const candidate of result.candidates) {
-    const card = document.createElement("article");
-    const label = document.createElement("strong");
-    label.textContent = (result.module === candidate.module ? "Chosen" : "Alternative") + " · " + candidate.module;
-    const reply = document.createElement("p");
-    reply.textContent = candidate.reply;
-    card.append(label, reply);
-    target.append(card);
-  }
-  if (!result.candidates.length) target.textContent = result.reply;
-}
 const record = document.querySelector("#record");
-fetch("example.json").then(r => r.json()).then(data => show(data, record)).catch(() => record.textContent = "Reload to see the example.");
+fetch("example.json").then(r => r.json()).then(data => renderCandidates(data, record)).catch(() => record.textContent = "Reload to see the example.");
 const run = document.querySelector("#run");
 const statusLine = document.querySelector("#status");
 let worker;
@@ -31,7 +18,7 @@ run.onclick = () => {
     worker.onerror = failed;
     worker.onmessage = ({data}) => {
       if (data.error) { failed(); return; }
-      show(data, document.querySelector("#output"));
+      renderCandidates(data, document.querySelector("#output"));
       run.disabled = false; statusLine.textContent = "Run complete.";
     };
     worker.postMessage(prompt);

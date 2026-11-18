@@ -50,6 +50,13 @@ function addMessage(who, text) {
   chatLog.scrollTop = chatLog.scrollHeight;
 }
 
+function addComparison(result) {
+  const group = document.createElement("div");
+  renderCandidates(result, group);
+  chatLog.append(group);
+  chatLog.scrollTop += group.getBoundingClientRect().top - chatLog.getBoundingClientRect().top - 12;
+}
+
 async function loadBot() {
   pybotDiagnostics.mark("runtimeStatus", "initialising");
   pyodide = await loadPyodide();
@@ -86,7 +93,9 @@ _pybot_document_state = {}
 tool_module.set_documents(_pybot_document_state)
 
 def _pybot_answer(text):
-    return runtime.turn(text, _pybot_memory)["reply"]
+    result = runtime.turn(text, _pybot_memory)
+    _pybot_memory["turns"][-1]["candidates"] = result["candidates"]
+    return json.dumps(result)
 
 def _pybot_export_memory():
     return json.dumps(_pybot_memory, separators=(",", ":"))
@@ -260,7 +269,8 @@ function renderStoredConversation() {
   for (const turn of turns) {
     if (!turn || typeof turn !== "object") continue;
     if (turn.user) addMessage("You", turn.user);
-    if (turn.bot) addMessage("PyBot", turn.bot);
+    if (Array.isArray(turn.candidates)) addComparison({ ...turn, reply: turn.bot });
+    else if (turn.bot) addMessage("PyBot", turn.bot);
   }
   return turns.length > 0;
 }
@@ -391,7 +401,7 @@ form.addEventListener("submit", (event) => {
     })));
     pybotDiagnostics.mark("retrievalMs", Math.round(performance.now() - retrievalStarted));
     const responseStarted = performance.now();
-    addMessage("PyBot", conversation(text));
+    addComparison(JSON.parse(conversation(text)));
     pybotDiagnostics.mark("responseMs", Math.round(performance.now() - responseStarted));
     saveMemory();
     if (!memoryPanel.hidden) renderMemories();
